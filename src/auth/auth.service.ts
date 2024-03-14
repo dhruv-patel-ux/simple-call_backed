@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
-import { sign } from 'jsonwebtoken'
 import { CommonService } from 'src/common-services/commonService.service';
 const JWT_SECRET = process.env.JWT_SECRET || '~~simple~chat~~'
 @Injectable()
@@ -18,7 +17,6 @@ export class AuthService {
             message: "User Not Found",
             data: []
         }
-        ''
         const checkPassword = bcrypt.compareSync(data.password, user.password);
         if (!checkPassword) return {
             success: false,
