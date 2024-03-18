@@ -21,6 +21,9 @@ export class User {
 
     @Prop()
     number: number
+
+    @Prop()
+    avatar: string
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

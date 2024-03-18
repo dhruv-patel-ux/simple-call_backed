@@ -7,6 +7,8 @@ import { Model } from 'mongoose';
 import { AuthService } from 'src/auth/auth.service';
 import { CommonService } from 'src/common-services/commonService.service';
 
+import * as fs from 'fs';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -41,7 +43,7 @@ export class UsersService {
   }
 
   findAll() {
-    return `This action returns all users`;
+    return this.userModel.find();
   }
 
   findOne(id: number) {
@@ -58,5 +60,37 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+  async updateProfile(data: any) {
+    try {
+      const uploadPath = 'public/user-avatars'; // Specify your upload directory
+      // Create the directory if it doesn't exist
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+
+      // Save the file to the specified directory
+      const filePath = `${uploadPath}/${data.user._id}_${data?.file.originalname}`;
+      fs.writeFileSync(filePath, data?.file.buffer);
+      await this.userModel.updateOne(
+        { _id: data.user._id },
+        { avatar: filePath })
+
+      return {
+        statusCode: 201,
+        success: true,
+        message: "Profile Update Successfully",
+        url: `E:/simply chat/simple-call_backed/public/user-avatars/${data?.file.originalname}`
+      }
+    } catch (e) {
+      console.log(e);
+
+      return {
+        statusCode: 500,
+        success: false,
+        message: e.messgae,
+        url: ''
+      }
+    }
   }
 }

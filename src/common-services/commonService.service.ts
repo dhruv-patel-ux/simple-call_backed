@@ -7,6 +7,7 @@ export class CommonService {
     async generateToken(user: any) {
         if(!user) return ''
         const plainUser = user.toObject();
+        delete plainUser.password
         return sign(plainUser, JWT_SECRET)
     }
 }

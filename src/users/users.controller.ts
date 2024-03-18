@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from 'src/common-services/guard.service';
 
 @ApiTags('Users')
 @Controller('')
@@ -12,6 +14,13 @@ export class UsersController {
   @Post('sign-up')
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+  
+  @Patch('update-profile-photo')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('profile-photo'))
+  uodateProfile( @UploadedFile() file:any,@Req() request: any) {
+    return this.usersService.updateProfile({file,user:request.user});
   }
 
   @Get()

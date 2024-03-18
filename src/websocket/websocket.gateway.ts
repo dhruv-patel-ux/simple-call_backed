@@ -8,7 +8,9 @@ import {
     WebSocketServer,
 } from "@nestjs/websockets";
 
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
+import { verify } from 'jsonwebtoken'
+const JWT_SECRET = process.env.JWT_SECRET || '~~simple~chat~~'
 
 @WebSocketGateway({
     cors: {
@@ -20,18 +22,26 @@ import { Server } from "socket.io";
 export class WebsocketGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(WebsocketGateway.name);
-
+    private liveUsers = []
     @WebSocketServer() io: Server;
-
     afterInit() {
         this.logger.log("Initialized");
     }
 
-    handleConnection(client: any, ...args: any[]) {
+    handleConnection(client: Socket) {
         const { sockets } = this.io.sockets;
-
-        this.logger.debug(`Client id: ${client.id} connected`);
-        this.logger.debug(`Number of connected clients: ${sockets.size}`);
+        this.logger.log(client.handshake.query)
+        const token = verify(client.handshake.query.authorization, JWT_SECRET);
+        if (!token) return ''
+        this.logger.debug(token);
+        this.liveUsers.push({ user_id: token._id, socket: Socket })
+        this.io.emit('live-users',{ users:this.liveUsers, id: client.id })
+        return {
+            event: "live-users",
+            data: { users:this.liveUsers, id: client.id },
+        }
+        // this.logger.debug(`Client id: ${client.id} connected`);
+        // this.logger.debug(`Number of connected clients: ${sockets.size}`);
     }
 
     handleDisconnect(client: any) {
@@ -47,4 +57,5 @@ export class WebsocketGateway
             data: { data, id: client.id },
         };
     }
+    
 }
