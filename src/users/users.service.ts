@@ -42,8 +42,8 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return this.userModel.find();
+  findAll(SearchTerm?: any) {
+    return this.userModel.find({ name: { $regex: SearchTerm, $options: 'i' } });
   }
 
   findOne(id: number) {

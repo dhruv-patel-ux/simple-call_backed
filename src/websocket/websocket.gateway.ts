@@ -34,8 +34,8 @@ export class WebsocketGateway
         const token = verify(client.handshake.query.authorization, JWT_SECRET);
         if (!token) return ''
         this.logger.debug(token);
-        this.liveUsers.push({ user_id: token._id, socket: Socket })
-        this.io.emit('live-users',{ users:this.liveUsers, id: client.id })
+        this.liveUsers.push({ user_id: token._id,SocketId: client.id })
+        this.io.emit('live-users',{ users:this.liveUsers })
         return {
             event: "live-users",
             data: { users:this.liveUsers, id: client.id },
