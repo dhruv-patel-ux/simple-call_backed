@@ -30,18 +30,32 @@ export class WebsocketGateway
 
     handleConnection(client: Socket) {
         const { sockets } = this.io.sockets;
-        this.logger.log(client.handshake.query)
-        const token = verify(client.handshake.query.authorization, JWT_SECRET);
-        if (!token) return ''
-        this.logger.debug(token);
-        this.liveUsers.push({ user_id: token._id,SocketId: client.id })
-        this.io.emit('live-users',{ users:this.liveUsers })
-        return {
-            event: "live-users",
-            data: { users:this.liveUsers, id: client.id },
-        }
-        // this.logger.debug(`Client id: ${client.id} connected`);
-        // this.logger.debug(`Number of connected clients: ${sockets.size}`);
+        // this.logger.log(client.handshake.query)
+        // const token = verify(client.handshake.query.authorization, JWT_SECRET);
+        // if (!token) return ''
+        // this.logger.debug(token);
+        // this.liveUsers.push({ user_id: token._id,SocketId: client.id })
+        // this.io.emit('live-users',{ users:this.liveUsers })
+        // return {
+        //     event: "live-users",
+        //     data: { users:this.liveUsers, id: client.id },
+        // }
+        client.on('joinRoom', (roomId) => {
+            client.join(roomId);
+            console.log(`User joined room ${roomId}`);
+        });
+        client.on('leaveRoom', (roomId) => {
+            client.leave(roomId);
+            console.log(`User ${client.id} left room ${roomId}`);
+          });
+        client.on('message',(data: any)=>{
+            console.log(data);
+            
+            this.io.to(data.roomId).emit('message',{message:data.message,userId:data.userId});
+        })
+        this.logger.debug(`Client id: ${client.id} connected`);
+        this.logger.debug(`Number of connected clients: ${sockets.size}`);
+
     }
 
     handleDisconnect(client: any) {
@@ -57,5 +71,5 @@ export class WebsocketGateway
             data: { data, id: client.id },
         };
     }
-    
+
 }
