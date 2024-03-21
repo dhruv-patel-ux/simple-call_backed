@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class RoomsService {
   constructor(
-    @InjectModel(Room.name) private roomModel: Model<Room>,
+    @InjectModel(Room.name) private roomModel: Model<Room>
   ) { }
   async create(createRoomDto: CreateRoomDto) {
     try {
@@ -47,8 +47,8 @@ export class RoomsService {
   async getRoomByUsersId(usersId: any) {
     return await this.roomModel.find({ usersId: { $all: [usersId[0], usersId[1]] } }).exec();
   }
-  findAll() {
-    return `This action returns all rooms`;
+  async findAll(userId: any) {
+    return await this.roomModel.find({ usersId: { $in: userId } }).exec();
   }
 
   findOne(id: number) {

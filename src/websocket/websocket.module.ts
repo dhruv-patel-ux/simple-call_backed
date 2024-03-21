@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { WebsocketGateway } from './websocket.gateway';
-import { WebsocketService } from './websocket.service';
+import { RoomChatModule } from 'src/room-chat/room-chat.module';
 @Module({
-    imports: [],
-    controllers: [],
-    providers: [WebsocketGateway,WebsocketService],
+    imports: [
+        RoomChatModule
+    ],
+    providers: [WebsocketGateway]
 })
 export class WebsocketModule { }

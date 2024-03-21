@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -20,8 +20,8 @@ export class RoomsController {
   }
 
   @Get()
-  findAll() {
-    return this.roomsService.findAll();
+  findAll(@Query() query:any) {
+    return this.roomsService.findAll(query.userId);
   }
 
   @Get(':id')
