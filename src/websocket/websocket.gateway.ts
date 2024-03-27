@@ -83,12 +83,13 @@ export class WebsocketGateway
     }
     @SubscribeMessage('message')
     async handleMessage(client: Socket, data: any) {
-        await this.roomChatService.create({
+         this.roomChatService.create({
             userId: data.userId,
             roomId: data.roomId,
             message: data.message
-        });
-        await this.roomService.update(data.roomId, data.message)
+        }).then();
+        this.roomService.update(data.roomId, data.message).then();
+        
         this.io.to(data.roomId).emit('message', { message: data.message, userId: data.userId });
     }
 
