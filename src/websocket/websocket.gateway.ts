@@ -14,6 +14,7 @@ import { RoomChatService } from "src/room-chat/room-chat.service";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { RoomChat } from "src/room-chat/entities/room-chat.entity";
+import { RoomsService } from "src/rooms/rooms.service";
 const JWT_SECRET = process.env.JWT_SECRET || '~~simple~chat~~'
 
 @WebSocketGateway({
@@ -28,7 +29,8 @@ export class WebsocketGateway
     private readonly logger = new Logger(WebsocketGateway.name);
     private liveUsers = []
     constructor(
-        private roomChatService: RoomChatService
+        private roomChatService: RoomChatService,
+        private roomService: RoomsService
     ) { }
     @WebSocketServer() io: Server;
     afterInit() {
@@ -47,10 +49,10 @@ export class WebsocketGateway
         //     event: "live-users",
         //     data: { users:this.liveUsers, id: client.id },
         // }
-        client.on('leaveRoom', (roomId) => {
-            client.leave(roomId);
-            console.log(`User ${client.id} left room ${roomId}`);
-        });
+        // client.on('leaveRoom', (roomId) => {
+        //     client.leave(roomId);
+        //     console.log(`User ${client.id} left room ${roomId}`);
+        // });
         this.logger.debug(`Client id: ${client.id} connected`);
         this.logger.debug(`Number of connected clients: ${sockets.size}`);
 
@@ -74,14 +76,19 @@ export class WebsocketGateway
         client.join(roomId);
         console.log(`User joined room ${roomId}`);
     }
-
+    @SubscribeMessage('leaveRoom')
+    leaveRoom(client: Socket, roomId: any) {
+        client.leave(roomId);
+        console.log(`User ${client.id} left room ${roomId}`);
+    }
     @SubscribeMessage('message')
     async handleMessage(client: Socket, data: any) {
-        const message = await this.roomChatService.create({
+        await this.roomChatService.create({
             userId: data.userId,
             roomId: data.roomId,
             message: data.message
         });
+        await this.roomService.update(data.roomId, data.message)
         this.io.to(data.roomId).emit('message', { message: data.message, userId: data.userId });
     }
 

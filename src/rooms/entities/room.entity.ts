@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { IsNotEmpty } from "class-validator";
 import { HydratedDocument, SchemaTypes } from "mongoose";
 
 export type UserDocument = HydratedDocument<Room>;
@@ -11,6 +10,9 @@ export class Room {
 
     @Prop({ type: [SchemaTypes.ObjectId], ref: 'User', required: true })
     usersId: [];
+
+    @Prop({ required: false })
+    lastMessage: string;
 
 }
 export const RoomSchema = SchemaFactory.createForClass(Room);
