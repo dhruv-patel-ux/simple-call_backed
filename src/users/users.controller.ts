@@ -9,23 +9,28 @@ import { AuthGuard } from 'src/common-services/guard.service';
 @ApiTags('Users')
 @Controller('')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post('sign-up')
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
-  
+
   @Patch('update-profile-photo')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('profile-photo'))
-  uodateProfile( @UploadedFile() file:any,@Req() request: any) {
-    return this.usersService.updateProfile({file,user:request.user});
+  uodateProfile(@UploadedFile() file: any, @Req() request: any) {
+    return this.usersService.updateProfile({ file, user: request.user });
   }
 
   @Get()
   findAll(@Query() query: any) {
     return this.usersService.findAll(query.SearchTerm);
+  }
+
+  @Get('find-user-profile/:id')
+  findUserProfile(@Param('id') id: string) {
+    return this.usersService.findUserProfile(id);
   }
 
   @Get(':id')

@@ -6,7 +6,7 @@ import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 import { AuthService } from 'src/auth/auth.service';
 import { CommonService } from 'src/common-services/commonService.service';
-
+import * as mongoose from 'mongoose';
 import * as fs from 'fs';
 
 @Injectable()
@@ -46,9 +46,40 @@ export class UsersService {
     return this.userModel.find({ name: { $regex: SearchTerm, $options: 'i' } });
   }
 
-  findOne(id: number) {
+  findOne(id: any) {
     if (!id) return
     return this.userModel.findById(id)
+  }
+
+  async findUserProfile(id: any) {
+    try {
+      if (!id) return {
+        statusCode: 400,
+        message: "Id Is required",
+        status: false
+      }
+      const _id = new mongoose.Types.ObjectId(id);
+      const user = await this.userModel.findById(_id);
+      if (!user) return {
+        statusCode: 400,
+        message: "User Not Found",
+        status: false
+      }
+      return {
+        statusCode: 200,
+        data: { name: user?.name, avatar: user.avatar },
+        status: true
+      }
+    } catch (e) {
+      console.log(e);
+
+      return {
+        statusCode: 500,
+        message: e.message,
+        status: false
+      }
+    }
+
   }
   findOneByMail(email: number) {
     if (!email) return

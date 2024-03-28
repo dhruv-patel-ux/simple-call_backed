@@ -82,6 +82,16 @@ export class RoomsService {
           as: "ToUserProfile",
         },
       },
+      {
+        $project:{
+          "ToUserProfile.name":1,
+          "ToUserProfile.avatar":1,
+          "ToUserProfile._id":1,
+          "usersId":1,
+          "roomId":1,
+          "lastMessage":1
+        }
+      }
     ])
   }
 
