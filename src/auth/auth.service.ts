@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { CommonService } from 'src/common-services/commonService.service';
+import { AuthGuard } from 'src/common-services/guard.service';
 const JWT_SECRET = process.env.JWT_SECRET || '~~simple~chat~~'
 @Injectable()
 export class AuthService {
     constructor(
         private userService: UsersService,
-        private commonService: CommonService
+        private commonService: CommonService,
     ) { }
     async login(data: any) {
         const user = await this.userService.findOneByMail(data.username);
@@ -37,5 +38,8 @@ export class AuthService {
     getHello(): string {
         return 'Hello World!';
     }
-
+    async validateToken(token: any){
+        const status= this.commonService.validateToken(token)
+        return {status}
+    }
 }

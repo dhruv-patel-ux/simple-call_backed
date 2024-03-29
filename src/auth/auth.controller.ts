@@ -13,6 +13,11 @@ export class AuthController {
         return this.authService.login(body);
     }
     
+    @Post('validate-token')
+    validateToken(@Body() body:any) {
+        return this.authService.login(body.token);
+    }
+
     @Get()
     getHello(): string {
         return this.authService.getHello();
