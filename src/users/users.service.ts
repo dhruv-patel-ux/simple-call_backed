@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -17,12 +17,9 @@ export class UsersService {
   ) { }
   async create(createUserDto: CreateUserDto) {
     const findUser = await this.userModel.findOne({ email: createUserDto.email }).exec();
-
-    if (findUser) return {
-      status: false,
-      statusCode: 422,
-      message: 'Email Already Exist'
-    };
+    const username = await this.userModel.findOne({username:createUserDto.username});
+    if (findUser) throw new HttpException('Email Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
+    if(username) return new HttpException('Username Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
     const createdUser = new this.userModel(createUserDto);
     const user = await createdUser.save();
 
@@ -67,7 +64,7 @@ export class UsersService {
       }
       return {
         statusCode: 200,
-        data: { name: user?.name, avatar: user.avatar },
+        data: { username: user?.username, avatar: user.avatar },
         status: true
       }
     } catch (e) {
@@ -81,9 +78,9 @@ export class UsersService {
     }
 
   }
-  findOneByMail(email: number) {
-    if (!email) return
-    return this.userModel.findOne({ email })
+  findOneByMail(username: number) {
+    if (!username) return
+    return this.userModel.findOne({ username })
   }
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
@@ -111,7 +108,7 @@ export class UsersService {
         statusCode: 201,
         success: true,
         message: "Profile Update Successfully",
-        url: `E:/simply chat/simple-call_backed/public/user-avatars/${data?.file.originalname}`
+        url: `/user-avatars/${data.user._id}_${data?.file.originalname}`
       }
     } catch (e) {
       console.log(e);

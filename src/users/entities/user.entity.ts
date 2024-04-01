@@ -9,7 +9,7 @@ export type UserDocument = HydratedDocument<User>;
 export class User {
     @Prop()
     @IsNotEmpty()
-    name: string;
+    username: string;
 
     @Prop()
     @IsNotEmpty()

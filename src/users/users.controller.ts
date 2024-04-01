@@ -22,28 +22,32 @@ export class UsersController {
   uodateProfile(@UploadedFile() file: any, @Req() request: any) {
     return this.usersService.updateProfile({ file, user: request.user });
   }
-
   @Get()
+  @UseGuards(AuthGuard)
   findAll(@Query() query: any) {
     return this.usersService.findAll(query.SearchTerm);
   }
 
   @Get('find-user-profile/:id')
+  @UseGuards(AuthGuard)
   findUserProfile(@Param('id') id: string) {
     return this.usersService.findUserProfile(id);
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard)
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
