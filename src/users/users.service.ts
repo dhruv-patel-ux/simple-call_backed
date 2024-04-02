@@ -17,9 +17,9 @@ export class UsersService {
   ) { }
   async create(createUserDto: CreateUserDto) {
     const findUser = await this.userModel.findOne({ email: createUserDto.email }).exec();
-    const username = await this.userModel.findOne({username:createUserDto.username});
+    const username = await this.userModel.findOne({ username: createUserDto.username });
     if (findUser) throw new HttpException('Email Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
-    if(username) return new HttpException('Username Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
+    if (username) return new HttpException('Username Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
     const createdUser = new this.userModel(createUserDto);
     const user = await createdUser.save();
 
@@ -39,8 +39,28 @@ export class UsersService {
     }
   }
 
-  findAll(SearchTerm?: any) {
-    return this.userModel.find({ name: { $regex: SearchTerm, $options: 'i' } });
+  async findAll(id: any, SearchTerm?: any) {
+    const userIdObject = new mongoose.Types.ObjectId(id);
+
+    const data = await this.userModel.aggregate([
+      {
+        $match: {
+          username: { $regex: SearchTerm, $options: 'i' }, _id: { $ne: userIdObject }
+        }
+      },
+      {
+        $project: {
+          "username": 1,
+          "avatar": 1
+        }
+      }
+    ]);
+    
+    return {
+      statusCode: 200,
+      status: true,
+      data
+    }
   }
 
   findOne(id: any) {

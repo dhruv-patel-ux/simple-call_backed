@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Req, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Req, UseGuards, Query, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,8 +24,10 @@ export class UsersController {
   }
   @Get()
   @UseGuards(AuthGuard)
-  findAll(@Query() query: any) {
-    return this.usersService.findAll(query.SearchTerm);
+  async findAll(@Query() query: any,@Request() request:any) {
+    console.log(request.user);
+    
+    return await this.usersService.findAll(request.user._id,query.SearchTerm);
   }
 
   @Get('find-user-profile/:id')
