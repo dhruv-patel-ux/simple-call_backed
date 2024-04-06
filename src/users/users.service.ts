@@ -20,6 +20,7 @@ export class UsersService {
     const username = await this.userModel.findOne({ username: createUserDto.username });
     if (findUser) throw new HttpException('Email Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
     if (username) return new HttpException('Username Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
+    createUserDto['avatar']='public/user-avatars/pngwing.com.png'
     const createdUser = new this.userModel(createUserDto);
     const user = await createdUser.save();
 

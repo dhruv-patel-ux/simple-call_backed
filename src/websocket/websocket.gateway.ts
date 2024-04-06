@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { HttpCode, HttpException, HttpStatus, Logger } from "@nestjs/common";
 import {
     OnGatewayConnection,
     OnGatewayDisconnect,
@@ -27,7 +27,6 @@ const JWT_SECRET = process.env.JWT_SECRET || '~~simple~chat~~'
 export class WebsocketGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(WebsocketGateway.name);
-    private liveUsers = []
     constructor(
         private roomChatService: RoomChatService,
         private roomService: RoomsService
@@ -39,20 +38,7 @@ export class WebsocketGateway
 
     handleConnection(client: Socket) {
         const { sockets } = this.io.sockets;
-        // this.logger.log(client.handshake.query)
-        // const token = verify(client.handshake.query.authorization, JWT_SECRET);
-        // if (!token) return ''
-        // this.logger.debug(token);
-        // this.liveUsers.push({ user_id: token._id,SocketId: client.id })
-        // this.io.emit('live-users',{ users:this.liveUsers })
-        // return {
-        //     event: "live-users",
-        //     data: { users:this.liveUsers, id: client.id },
-        // }
-        // client.on('leaveRoom', (roomId) => {
-        //     client.leave(roomId);
-        //     console.log(`User ${client.id} left room ${roomId}`);
-        // });
+
         this.logger.debug(`Client id: ${client.id} connected`);
         this.logger.debug(`Number of connected clients: ${sockets.size}`);
 
@@ -72,25 +58,37 @@ export class WebsocketGateway
     //     };
     // }
     @SubscribeMessage('joinRoom')
-    joinRoom(client: Socket, roomId: any) {
+    joinRoom(client: Socket, { roomId, userId }) {
+        if (!roomId || !userId) {
+            throw new HttpException('User and Room Id not found', HttpStatus.BAD_REQUEST)
+        }
+        this.roomService.updateActiveUsers(roomId, userId, 'add');
         client.join(roomId);
-        console.log(`User joined room ${roomId}`);
+        console.log(`User ${userId} joined room ${roomId}`);
     }
     @SubscribeMessage('leaveRoom')
-    leaveRoom(client: Socket, roomId: any) {
+    async leaveRoom(client: Socket, { roomId, userId }) {
+        this.roomService.updateActiveUsers(roomId, userId, 'remove');
         client.leave(roomId);
-        console.log(`User ${client.id} left room ${roomId}`);
+        const friends = await this.roomService.findAll(userId)
+        client.emit('friend-list', friends)
+        console.log(`User ${userId} left room ${roomId}`);
+
     }
     @SubscribeMessage('message')
-    async handleMessage(client: Socket, data: any) {
-         this.roomChatService.create({
+    handleMessage(client: Socket, data: any) {
+        this.roomChatService.create({
             userId: data.userId,
             roomId: data.roomId,
             message: data.message
         }).then();
         this.roomService.update(data.roomId, data.message).then();
-        
         this.io.to(data.roomId).emit('message', { message: data.message, userId: data.userId });
     }
 
+    @SubscribeMessage('friend-list')
+    async getFriendList(client: Socket, userId: any) {
+        const friends = await this.roomService.findAll(userId)
+        client.emit('friend-list', friends)
+    }
 }

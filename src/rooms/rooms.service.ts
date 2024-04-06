@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -83,13 +83,14 @@ export class RoomsService {
         },
       },
       {
-        $project:{
-          "ToUserProfile.name":1,
-          "ToUserProfile.avatar":1,
-          "ToUserProfile._id":1,
-          "usersId":1,
-          "roomId":1,
-          "lastMessage":1
+        $project: {
+          "ToUserProfile.username": 1,
+          "ToUserProfile.avatar": 1,
+          "ToUserProfile._id": 1,
+          "usersId": 1,
+          "activeUsers": 1,
+          "roomId": 1,
+          "lastMessage": 1
         }
       }
     ])
@@ -99,10 +100,27 @@ export class RoomsService {
     return `This action returns a #${id} room`;
   }
 
+  updateActiveUsers(id: any, userId: any, action: any) {
+    try {
+      console.log(id, userId, "<--------------------");
+      const userIdObject = new mongoose.Types.ObjectId(userId);
+      const condition = {};
+      if (action === 'add') condition['$push'] = { activeUsers: userIdObject };
+      if (action == 'remove') condition['$pull'] = { activeUsers: userIdObject };
+      this.roomModel.updateOne({ roomId: id }, condition).then((res: any) => {
+        console.log(res);
+      })
+      return
+    } catch (e) {
+      console.log(e);
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   update(id: any, lastMessage: any) {
-    try{
+    try {
       return this.roomModel.updateOne({ roomId: id }, { $set: { lastMessage: lastMessage } })
-    }catch (e){
+    } catch (e) {
       console.log(e);
       return
     }

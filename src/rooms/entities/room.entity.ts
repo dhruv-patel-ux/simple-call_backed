@@ -14,5 +14,8 @@ export class Room {
     @Prop({ required: false })
     lastMessage: string;
 
+    @Prop({ type: [SchemaTypes.ObjectId], ref: 'User', required: true })
+    activeUsers: [];
+
 }
 export const RoomSchema = SchemaFactory.createForClass(Room);
