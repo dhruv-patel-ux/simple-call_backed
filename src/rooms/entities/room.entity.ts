@@ -17,5 +17,8 @@ export class Room {
     @Prop({ type: [SchemaTypes.ObjectId], ref: 'User', required: true })
     activeUsers: [];
 
+    @Prop({ type: [Object], required: true })
+    unreadCount: [];
+
 }
 export const RoomSchema = SchemaFactory.createForClass(Room);

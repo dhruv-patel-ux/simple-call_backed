@@ -6,7 +6,6 @@ import { Room } from './entities/room.entity';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import * as mongoose from 'mongoose';
-import { isValidObjectId } from 'mongoose';
 
 @Injectable()
 export class RoomsService {
@@ -102,14 +101,10 @@ export class RoomsService {
 
   updateActiveUsers(id: any, userId: any, action: any) {
     try {
-      console.log(id, userId, "<--------------------");
-      const userIdObject = new mongoose.Types.ObjectId(userId);
       const condition = {};
-      if (action === 'add') condition['$push'] = { activeUsers: userIdObject };
-      if (action == 'remove') condition['$pull'] = { activeUsers: userIdObject };
-      this.roomModel.updateOne({ roomId: id }, condition).then((res: any) => {
-        console.log(res);
-      })
+      if (action === 'add') condition['$push'] = { activeUsers: userId };
+      if (action == 'remove') condition['$pull'] = { activeUsers: userId };
+      this.roomModel.updateOne({ roomId: id }, condition).then()
       return
     } catch (e) {
       console.log(e);
@@ -117,9 +112,29 @@ export class RoomsService {
     }
   }
 
-  update(id: any, lastMessage: any) {
+  async update(id: any, lastMessage: any, toUser: any) {
     try {
-      return this.roomModel.updateOne({ roomId: id }, { $set: { lastMessage: lastMessage } })
+      const room: any = await this.roomModel.findOne({ roomId: id });
+      if (!room.activeUsers.includes(toUser)) {
+        let count: any = {}
+        if (room.unreadCount?.indexOf(toUser) != '-1') {
+          console.log(room.unreadCount.indexOf(toUser));
+        } else {
+          count = {
+            id: toUser,
+            count: 1
+          }
+        }
+        console.log(count);
+        return this.roomModel.updateOne(
+          { roomId: id },
+          {
+            $set:
+              { lastMessage: lastMessage, $push: { unreadCount: count } }
+          })
+      } else {
+        return this.roomModel.updateOne({ roomId: id }, { $set: { lastMessage: lastMessage } })
+      }
     } catch (e) {
       console.log(e);
       return

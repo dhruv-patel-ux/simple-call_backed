@@ -32,11 +32,11 @@ export class RoomsController {
   findOne(@Param('id') id: string) {
     return this.roomsService.findOne(+id);
   }
-  @Patch(':id')
-  @UseGuards(AuthGuard)
-  update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
-    return this.roomsService.update(+id, updateRoomDto);
-  }
+  // @Patch(':id')
+  // @UseGuards(AuthGuard)
+  // update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
+  //   return this.roomsService.update(+id, updateRoomDto);
+  // }
 
   @Delete(':id')
   @UseGuards(AuthGuard)

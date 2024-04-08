@@ -1,4 +1,4 @@
-import { HttpCode, HttpException, HttpStatus, Logger } from "@nestjs/common";
+import { HttpException, HttpStatus, Logger } from "@nestjs/common";
 import {
     OnGatewayConnection,
     OnGatewayDisconnect,
@@ -9,13 +9,8 @@ import {
 } from "@nestjs/websockets";
 
 import { Server, Socket } from "socket.io";
-import { verify } from 'jsonwebtoken'
 import { RoomChatService } from "src/room-chat/room-chat.service";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { RoomChat } from "src/room-chat/entities/room-chat.entity";
 import { RoomsService } from "src/rooms/rooms.service";
-const JWT_SECRET = process.env.JWT_SECRET || '~~simple~chat~~'
 
 @WebSocketGateway({
     cors: {
@@ -48,15 +43,6 @@ export class WebsocketGateway
         this.logger.log(`Cliend id:${client.id} disconnected`);
     }
 
-    // @SubscribeMessage("ping")
-    // handleMessage(client: any, data: any) {
-    //     this.logger.log(`Message received from client id: ${client.id}`);
-    //     this.logger.debug(`Payload: ${data}`);
-    //     return {
-    //         event: "pong",
-    //         data: { data, id: client.id },
-    //     };
-    // }
     @SubscribeMessage('joinRoom')
     joinRoom(client: Socket, { roomId, userId }) {
         if (!roomId || !userId) {
@@ -80,9 +66,12 @@ export class WebsocketGateway
         this.roomChatService.create({
             userId: data.userId,
             roomId: data.roomId,
-            message: data.message
+            message: data.message,
         }).then();
-        this.roomService.update(data.roomId, data.message).then();
+        this.roomService.update(data.roomId, data.message, data.toUserId).then((res:any)=>{
+            console.log(res);
+            
+        });
         this.io.to(data.roomId).emit('message', { message: data.message, userId: data.userId });
     }
 
