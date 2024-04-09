@@ -89,6 +89,8 @@ export class RoomsService {
           "usersId": 1,
           "activeUsers": 1,
           "roomId": 1,
+          "unreadCount": 1,
+          "updatedAt":1,
           "lastMessage": 1
         }
       }
@@ -101,6 +103,15 @@ export class RoomsService {
 
   updateActiveUsers(id: any, userId: any, action: any) {
     try {
+      this.roomModel.findOne({ roomId: id }).then((room: any) => {
+        if (!room.activeUsers.includes(userId)) {
+          const index = room.unreadCount?.findIndex((item: any) => item.id == userId);
+          if (index != '-1') {
+            room.unreadCount.splice(index, 1);
+            room.save().then()
+          }
+        }
+      })
       const condition = {};
       if (action === 'add') condition['$push'] = { activeUsers: userId };
       if (action == 'remove') condition['$pull'] = { activeUsers: userId };
@@ -114,23 +125,28 @@ export class RoomsService {
 
   async update(id: any, lastMessage: any, toUser: any) {
     try {
-      const room: any = await this.roomModel.findOne({ roomId: id });
+      const room: any = await this.roomModel.findOne({ roomId: id }).exec();
       if (!room.activeUsers.includes(toUser)) {
-        let count: any = {}
-        if (room.unreadCount?.indexOf(toUser) != '-1') {
-          console.log(room.unreadCount.indexOf(toUser));
+        let count = {}
+        const index = room.unreadCount?.findIndex((item: any) => item.id == toUser);
+        // const doc = await this.roomModel.findOne({ roomId: id });
+        if (index != '-1') {
+          count = room.unreadCount[index]
+          count['count'] += +room.unreadCount[index].count
+          room.unreadCount[index] = count
         } else {
-          count = {
+          let count = {
             id: toUser,
             count: 1
           }
+          room.unreadCount.push(count);
         }
-        console.log(count);
+        room.save().then()
         return this.roomModel.updateOne(
           { roomId: id },
           {
             $set:
-              { lastMessage: lastMessage, $push: { unreadCount: count } }
+              { lastMessage: lastMessage }
           })
       } else {
         return this.roomModel.updateOne({ roomId: id }, { $set: { lastMessage: lastMessage } })

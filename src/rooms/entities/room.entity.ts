@@ -18,7 +18,15 @@ export class Room {
     activeUsers: [];
 
     @Prop({ type: [Object], required: true })
-    unreadCount: [];
+    unreadCount: [Object];
+
+    @Prop({ type: Date, default: Date.now })
+    updatedAt: Date
 
 }
+
 export const RoomSchema = SchemaFactory.createForClass(Room);
+RoomSchema.pre('save', function (next) {
+    this.updatedAt = new Date();
+    next();
+});
