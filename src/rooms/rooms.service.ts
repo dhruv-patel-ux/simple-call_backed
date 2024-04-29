@@ -90,7 +90,7 @@ export class RoomsService {
           "activeUsers": 1,
           "roomId": 1,
           "unreadCount": 1,
-          "updatedAt":1,
+          "updatedAt": 1,
           "lastMessage": 1
         }
       }
@@ -114,7 +114,7 @@ export class RoomsService {
       })
       const condition = {};
       if (action === 'add') condition['$push'] = { activeUsers: userId };
-      if (action == 'remove') condition['$pull'] = { activeUsers: userId };
+      if (action == 'remove') condition['$pullAll'] = { activeUsers: [userId] };
       this.roomModel.updateOne({ roomId: id }, condition).then()
       return
     } catch (e) {
@@ -129,10 +129,9 @@ export class RoomsService {
       if (!room.activeUsers.includes(toUser)) {
         let count = {}
         const index = room.unreadCount?.findIndex((item: any) => item.id == toUser);
-        // const doc = await this.roomModel.findOne({ roomId: id });
         if (index != '-1') {
           count = room.unreadCount[index]
-          count['count'] += +room.unreadCount[index].count
+          count['count'] += Number(room.unreadCount[index].count)
           room.unreadCount[index] = count
         } else {
           let count = {

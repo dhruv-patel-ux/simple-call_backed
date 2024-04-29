@@ -20,10 +20,13 @@ export class User {
     password: string;
 
     @Prop()
-    number: number
+    number: number;
 
     @Prop()
-    avatar: string
+    socketId: string;
+
+    @Prop()
+    avatar: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

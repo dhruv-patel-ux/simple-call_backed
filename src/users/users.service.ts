@@ -20,7 +20,7 @@ export class UsersService {
     const username = await this.userModel.findOne({ username: createUserDto.username });
     if (findUser) throw new HttpException('Email Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
     if (username) return new HttpException('Username Already Exist', HttpStatus.UNPROCESSABLE_ENTITY);
-    createUserDto['avatar']='public/user-avatars/pngwing.com.png'
+    createUserDto['avatar'] = 'public/user-avatars/pngwing.com.png'
     const createdUser = new this.userModel(createUserDto);
     const user = await createdUser.save();
 
@@ -106,7 +106,9 @@ export class UsersService {
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
-
+  updateSoketId({ id, socketId }) {
+    return this.userModel.findOneAndUpdate({ _id: id }, { socketId })
+  }
   remove(id: number) {
     return `This action removes a #${id} user`;
   }

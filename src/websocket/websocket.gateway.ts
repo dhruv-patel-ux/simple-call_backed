@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { RoomChatService } from "src/room-chat/room-chat.service";
 import { RoomsService } from "src/rooms/rooms.service";
+import { UsersService } from "src/users/users.service";
 
 @WebSocketGateway({
     cors: {
@@ -24,7 +25,8 @@ export class WebsocketGateway
     private readonly logger = new Logger(WebsocketGateway.name);
     constructor(
         private roomChatService: RoomChatService,
-        private roomService: RoomsService
+        private roomService: RoomsService,
+        private usersService: UsersService
     ) { }
     @WebSocketServer() io: Server;
     afterInit() {
@@ -33,7 +35,7 @@ export class WebsocketGateway
 
     handleConnection(client: Socket) {
         const { sockets } = this.io.sockets;
-
+        this.usersService.updateSoketId({ socketId: client.id, id: client.handshake.query.userId }).then()
         this.logger.debug(`Client id: ${client.id} connected`);
         this.logger.debug(`Number of connected clients: ${sockets.size}`);
 
@@ -62,17 +64,19 @@ export class WebsocketGateway
 
     }
     @SubscribeMessage('message')
-    handleMessage(client: Socket, data: any) {
+    async handleMessage(client: Socket, data: any) {
         this.roomChatService.create({
             userId: data.userId,
             roomId: data.roomId,
             message: data.message,
         }).then();
-        this.roomService.update(data.roomId, data.message, data.toUserId).then((res:any)=>{
+        this.roomService.update(data.roomId, data.message, data.toUserId).then((res: any) => {
             console.log(res);
-            
         });
         this.io.to(data.roomId).emit('message', { message: data.message, userId: data.userId });
+        const ToUSer = await this.usersService.findOne(data.toUserId)
+        const friends = await this.roomService.findAll(data.toUserId);
+        this.io.sockets.to(ToUSer.socketId).emit('friend-list', friends)
     }
 
     @SubscribeMessage('friend-list')
