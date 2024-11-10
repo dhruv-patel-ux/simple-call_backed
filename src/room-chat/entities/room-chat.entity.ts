@@ -10,6 +10,12 @@ export class RoomChat {
     @Prop({ required: true })
     roomId: string;
 
+    @Prop({ required: false })
+    reaction: number;
+
+    @Prop({ required: false })
+    replay: string;
+
     @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
     userId: string;
 

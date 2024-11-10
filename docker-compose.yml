@@ -7,7 +7,7 @@ services:
     depends_on:
       - mongo
     environment:
-      - MONGODB_URI=mongodb+srv://dhruvp8115:NyHoiS0dk3a2sw78@cluster0.jm7jjs0.mongodb.net/
+      - mongodb://localhost:27017/
     networks:
       - app-network
 

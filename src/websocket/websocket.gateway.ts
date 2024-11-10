@@ -35,6 +35,8 @@ export class WebsocketGateway
 
     handleConnection(client: Socket) {
         const { sockets } = this.io.sockets;
+        console.log(client.id, client.handshake.query.userId);
+
         this.usersService.updateSoketId({ socketId: client.id, id: client.handshake.query.userId }).then()
         this.logger.debug(`Client id: ${client.id} connected`);
         this.logger.debug(`Number of connected clients: ${sockets.size}`);
@@ -65,18 +67,39 @@ export class WebsocketGateway
     }
     @SubscribeMessage('message')
     async handleMessage(client: Socket, data: any) {
-        this.roomChatService.create({
+        const res= await  this.roomChatService.create({
             userId: data.userId,
             roomId: data.roomId,
             message: data.message,
-        }).then();
-        this.roomService.update(data.roomId, data.message, data.toUserId).then((res: any) => {
-            console.log(res);
-        });
-        this.io.to(data.roomId).emit('message', { message: data.message, userId: data.userId });
+            replay: data.replay
+        })
+        this.io.to(data.roomId).emit('message', { _id: res._id, message: data.message, userId: data.userId, replay: data.replay });
+        this.roomService.update(data.roomId, data.message, data.toUserId).then((res: any) => {});
         const ToUSer = await this.usersService.findOne(data.toUserId)
         const friends = await this.roomService.findAll(data.toUserId);
-        this.io.sockets.to(ToUSer.socketId).emit('friend-list', friends)
+        console.log(ToUSer);
+        
+        this.io.sockets.to(ToUSer?.socketId).emit('friend-list', friends)
+    }
+    @SubscribeMessage('react')
+    async handleReact(client: Socket, data: any) {
+        this.roomChatService.addReact({
+            index: data.index,
+            message_id: data.message_id,
+        }).then();
+
+        this.io.to(data.roomId).emit('react', {
+            index: data.index,
+            message_id: data.message_id,
+        });
+    }
+    @SubscribeMessage('joinVideoCall')
+    async handleVideoCall(client: Socket, data: any) {
+        const { userId, appId, channel, token } = data;
+        const user = await this.usersService.findOne(userId);
+        console.log("Socket Id ------", user.socketId);
+
+        this.io.sockets.to(user.socketId).emit('getVideoCall', { appId, channel, token });
     }
 
     @SubscribeMessage('friend-list')

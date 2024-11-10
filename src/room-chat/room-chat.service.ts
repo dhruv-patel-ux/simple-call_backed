@@ -3,7 +3,7 @@ import { CreateRoomChatDto } from './dto/create-room-chat.dto';
 import { UpdateRoomChatDto } from './dto/update-room-chat.dto';
 import { RoomChat } from './entities/room-chat.entity';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 
 @Injectable()
 export class RoomChatService {
@@ -12,6 +12,8 @@ export class RoomChatService {
   ) { }
   create(createRoomChatDto: CreateRoomChatDto) {
     try {
+      console.log(createRoomChatDto);
+      
       return this.roomModel.create({ ...createRoomChatDto })
     } catch (e) {
       console.log(e);
@@ -26,8 +28,13 @@ export class RoomChatService {
 
   async findOne(id: any) {
     console.log(id);
-    
+
     const RoomChat = await this.roomModel.find({ roomId: id })
+    return RoomChat;
+  }
+
+  async addReact(data: any) {
+    const RoomChat = await this.roomModel.updateOne({ _id: data.message_id }, { reaction: data.index });
     return RoomChat;
   }
 

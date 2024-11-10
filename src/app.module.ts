@@ -11,7 +11,7 @@ import { join } from 'path';
 import { RoomsModule } from './rooms/rooms.module';
 import { RoomChatModule } from './room-chat/room-chat.module';
 const DATABASE_NAME = process.env.DATABASE_NAME || 'simple-chat'
-const DATABASE_URL = process.env.DATABASE_URL || `mongodb+srv://dhruvp8115:NyHoiS0dk3a2sw78@cluster0.jm7jjs0.mongodb.net/${DATABASE_NAME}?retryWrites=true&w=majority&appName=Cluster0/simple-chat`
+const DATABASE_URL = process.env.DATABASE_URL || `mongodb://localhost:27017/${DATABASE_NAME}`
 
 @Module({
   imports: [
